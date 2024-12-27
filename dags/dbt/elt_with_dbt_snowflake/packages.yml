@@ -1,0 +1,13 @@
+packages:
+
+  # Package to generate surrogate key
+  - package: dbt-labs/dbt_utils
+    version: 1.1.1
+  
+  # Package to generate date/time dimension
+  - package: calogica/dbt_date
+    version: [">=0.10.0", "<0.11.0"]
+      
+  # Package to create a constraint/relation between tables
+  - package: Snowflake-Labs/dbt_constraints
+    version: [">=0.6.0", "<0.7.0"]

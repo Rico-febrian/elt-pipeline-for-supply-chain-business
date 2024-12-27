@@ -1,0 +1,1 @@
+{{ dbt_date.get_date_dimension("1990-01-01", "2000-12-31") }}

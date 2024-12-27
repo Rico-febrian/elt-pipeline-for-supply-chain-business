@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: stg_warehouse_db
+    database: warehouse_db
+    schema: staging
+    tables:
+      - name: customer
+      - name: orders
+      - name: lineitem
+      - name: supplier
+      - name: nation
+      - name: region
+      - name: part
+      - name: partsupp
