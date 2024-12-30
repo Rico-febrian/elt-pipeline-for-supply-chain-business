@@ -111,11 +111,13 @@ def load_data():
 
 # Define DBT project paths
 DBT_PROJECT_PATH = "/usr/local/airflow/dags/dbt/elt_with_dbt_snowflake"
+DBT_SNAPSHOT_PATH = "/usr/local/airflow/dags/dbt/elt_with_dbt_snowflake/snapshots"
 DBT_PROFILES_PATH = "/usr/local/airflow/dags/dbt/elt_with_dbt_snowflake/profiles.yml"
 
 # Set project config
 dbt_project_config = ProjectConfig(
     dbt_project_path=DBT_PROJECT_PATH,
+    snapshots_relative_path=DBT_SNAPSHOT_PATH,
 )
 
 # Set profile config with direct mapping
@@ -136,38 +138,31 @@ with DAG(
 
     logging.info("Initializing DAG: elt_pipeline_with_dbt")
     
-    # Define the tasks
-    start = EmptyOperator(task_id="start_dag")  # Empty operator task to start the DAG
+    # ------ Define the tasks -------
     
-    # Python operator task to load data from the data source
-    load_task = PythonOperator(                 
-        task_id="load_data_source",
-        python_callable=load_data,
+    # Empty operator task to start the DAG
+    start = EmptyOperator(task_id="start_dag")  
+    
+    # Task to load data from the data source
+    load_task = PythonOperator(                    # Define the PythonOperator task to called the python function    
+        task_id="load_data_source",                # Define the task ID
+        python_callable=load_data,                 # Call the python function
     )
-    
-    # Run DBT tasks using Cosmos package to transform data
-    transform_staging = DbtTaskGroup(
-        group_id="transform_staging_layer",         # Define the group ID
-        project_config=dbt_project_config,          # Pass the project config
-        profile_config=profile_config,              # Pass the profile config
-        render_config=RenderConfig(                 # Pass the render config
-            select=["path:models/staging"]          # Select the specified path to choose which models to run
-        )
-    )
-    
-    transform_marts = DbtTaskGroup(
-        group_id="transform_marts_layer",           # Define the group ID
-        project_config=dbt_project_config,          # Pass the project config
-        profile_config=profile_config,              # Pass the profile config
-        render_config=RenderConfig(                 # Pass the render config
-            select=["path:models/marts/core"],      # Select the specified path to choose which models to run
+
+    # Task to transform data with DBT Cosmos
+    transform_task = DbtTaskGroup(
+        group_id="transform_data_with_dbt",         # Define the group ID
+        project_config=dbt_project_config,          # Define the project config
+        profile_config=profile_config,              # Define the profile config
+        render_config=RenderConfig(                 # Set the render config to render the models                     
             test_behavior=TestBehavior.AFTER_ALL,   # Set the test behavior to run tests after all models are
         )
     )
     
-    end = EmptyOperator(task_id="end_dag")       # Empty operator task to end the DAG
+    # Empty operator task to end the DAG
+    end = EmptyOperator(task_id="end_dag")       
 
-    # Set the task dependencies
-    start >> load_task >> transform_staging >> transform_marts >> end 
+    # Set the task dependencies and chain the tasks
+    start >> load_task >> transform_task >> end 
     
     logging.info("DAG task succesfully initialized..")
