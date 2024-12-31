@@ -1,8 +1,10 @@
-Hi there! Welcome to my learning logs.
+[!Title Image]()
 
-In this guide, I will share how I developed an ELT pipeline based on a designed dimensional model for a supply chain business, using a case study. 
+# Overview
 
-For the full story about the case study and how I designed the data warehouse, you can check out my article on Medium here:
+**Hi there! Welcome to my learning logs**.
+
+In this guide, I will share how I developed an ELT pipeline based on a designed dimensional model for a supply chain business using a case study.
 
 ---
 ---
@@ -11,77 +13,166 @@ For the full story about the case study and how I designed the data warehouse, y
 
 **In this repository, I’ll focus specifically on how I developed the ELT pipeline, including:**
 
-- Developing the ELT script
+- Developing the ELT scripts
   
-- Managing data transformations with DBT
-
-- Orchestrate and automate the pipeline with Airflow
-
-- Create the dashboard based on the result for analytics/reporting 
+- Building data transformation models using DBT
+  
+- Orchestrating and automating the pipeline with Airflow and Astronomer
+  
+- Designing and creating dashboards in Looker Studio
 
 ---
 ---
 
 # Case Study Background
 
-let's assume that I already do a requirements gathering with the stakeholder and user and we were reach and agreement about the data warehouse design. In summary here's the current company condition, problem and their needs for the context:
+Assume that I have already conducted a requirements gathering session with stakeholders and users, and we have reached a mutual agreement on the solution to be implemented. 
 
+In summary, here is the current state of the company, the problems it faces, and its key needs to provide context:
+
+- ## Business High-priority Metrics/KPI's
+
+  - Sales performance (daily, monthly, yearly).
+  - Profitability analysis.
+  - Order fulfillment rate.
+  - Customer segmentation.
+    
+- ## Current Problem
+
+  - **Inefficient analysis of critical metrics**
+
+    Stakeholders and users have trouble analyzing important metrics effectively because the data is spread out and hard to work with.
+
+  - **Complex data management**
+
+    All the data is in a single, large database, so lots of joins and aggregations are needed, making reporting time-consuming.
+
+  - **High costs**
+
+    Managing data inefficiently, along with large data volumes, leads to high costs. The growing data is becoming more expensive to manage.
+
+  - **Lack of visualization tools**
+
+    The business currently doesn’t have a good visualization platform to help with effective analytics.
+
+- ## Stakeholders' & Users' Needs
+
+  - Clean, accurate, and reliable data for reporting and analytics.
+  - Fast data retrieval and efficient analysis.
+  - Daily data updates.
+  - A solution that can scale and be cost-efficient as the business grows.
+
+- ## Data Source Condition
+  
+  - **Data flow**
+
+    The current source data is collected from daily batch file uploads and API feeds.
+  
+  - **Update frequency**
+
+    The data is updated on a daily basis.
+  
+  - **Data volume and growth trends**
+
+    - The database currently stores over 8 million rows across several core tables.
+
+    - As the company expands its operations, data volume is expected to grow at a rate of around 100,000–200,000 new rows per month, primarily driven by increasing transaction volumes and a larger supplier and customer network.
+
+- ## Data Quality
+  
+The current data quality is good, with no missing values. The values are consistent, easy to understand, and suitable for analysis. However, some tables contain duplicate records due to the detailed granularity of information. Despite these issues, the data remains effective for use.
+
+- ## Agreed Solution
+
+  - Design and build a data warehouse based on current data source and high-priority metrics/KPI's.
+    
+  - Implement ELT pipeline to run daily updates.
+
+  - Create visualizations and dashboards from the data warehouse to support decision-making.
+
+  - Cost-efficiency improvement by using a more structured model for data, allowing the system to scale more affordably.
 
 ---
+---
 
-# Pipeline Workflow
+# Pipeline Workflow Overview
 
 Before diving into the main discussion, take a look at the image below. This illustrates the workflow I followed to build this project.
+
+Although this project is ELT-based, I only focused on the Load and Transform steps. **I skipped the Extract step because I used a sample dataset from Snowflake**. So, this project is mainly about loading and transforming data.
 
 - ## How the pipeline works
   
   - ### Load Task
-    The Load task load the data source from aonther database in Snowflake and loads it into the staging schemas in the warehouse database:
+    The Load task moves data from the source database to the staging schema in the target database.
   
-    - **Staging Schema**: Stores the raw data exactly as it came from the source database.
+    - **Staging schema**
+
+      Stores the raw data exactly as it came from the source database.
+
+    - **Final schema**
+
+      Stores transformed data, ready for use in analytics and dashboards.
+    
+    - **Snapshots schema**
+
+       Maintains historical data for certain tables in the final schema.
   
   - ### Transform Task
 
-    The Transform Task performs data transformations based on the design of the data warehouse. The transformations are done using DBT (Data Build Tool) and run it through the DAG using Cosmos package, which helps organize and automate the data processing steps.
+    The Transform task applies data transformations according to the data warehouse design. This step is executed using DBT (Data Build Tool) and orchestrated with Airflow’s Cosmos package, which automates and organizes the data processing steps.
 
-    In this step, the raw data from the staging schema is processed and transformed to match the structure and requirements of the data warehouse. Once transformed, the data is loaded into the final schema, which is used by business users for analysis and reporting.
+    - In this step, raw data from the staging schema is processed and transformed to align with the requirements of the dimensional model.
+    - The transformed data is then loaded into the final schema, where it becomes accessible for business analysis and reporting.
 
 - ## Why use this workflow?
 
-  This workflow was designed based on the business requirements provided by stakeholders in the case study. If you're curious about their specific needs, you can refer to [my article]() for more details.
+  This workflow was designed based on the business requirements provided by stakeholders in the case study. Here’s why this workflow fits the scenario:
 
-  Here’s why this workflow fits the scenario:
+  ### Benefits:
 
-  - **Aligned with business needs**
+  - **Clear data organization**
 
-    Stakeholders requested a low-cost, scalable, and easy-to-understand solution. This pipeline delivers on those points while allowing room for experimentation before making larger investments.
+    Data is split into staging (raw data), final (ready-to-use data), and snapshot (historical data). This makes it easier to manage and understand what’s happening at each step.
+  
+  - **Easy to use and maintain**
 
-  - **Efficiency for small data volumes**
+    The setup is simple enough for teams to use and keep running smoothly without needing deep technical skills.
+  
+  - **Efficient transformations with DBT**
 
-    With only ~90,000 rows and slow growth of around 5% per month, the pipeline handles data extraction and loading quickly without needing additional layers or complex systems.
+    DBT handles data transformations in the final schema. It’s automated, scalable, and makes processing faster and more consistent.
+  
+  - **Saves Costs**
 
-  - **Simplicity and maintainability**
+    By avoiding extra queries on raw data and using materialized views, this workflow saves on computing resources, which reduces costs.
+  
+  ### Trade-offs:
 
-    The design ensures that users can easily understand, use, and maintain the pipeline with minimal technical barriers. This is critical for a team starting small or exploring new possibilities.
+  - **Risk of losing data in staging layer**
+  
+    The staging layer only holds raw data temporarily. If an issue occurs during processing, reloading the data from the source may be necessary
 
-- ## Trade-off
+    **Mitigation: Add a simple backup or archive step for raw data.**
+  
+  - **Slower processing for large data in staging layer**
 
-  While this workflow is simple and efficient, it does have some limitations:
+    Refreshing all data in staging can take time as the dataset grows.
+  
+    **Mitigation: Use incremental loads to process only new or updated data.**
+  
+  - **Snapshots can get too big**
 
-  - **No raw data backup in warehouse database**
+    Storing historical data in the snapshot schema might slow down performance as it grows.
 
-    If a transformation fails or a bug occurs, the data in the staging schema could be affected. This means you might need to re-extract the data from the source. This isn’t a major problem for small datasets, but as the data grows, it might become more time-consuming and inconvenient.
-
-  - **Limited scalability for large datasets**
-
-    If the bookstore experiences rapid growth, this pipeline might need adjustments to handle the increased data volume. At that point, having a dedicated public layer as a raw data archive would become crucial to ensure scalability and reliability.
+    **Mitigation: Archive older data or optimize how you query the snapshot.**
 
 ---
 ---
 
 # Dataset Overview
 
-I used a sample dataset from Snowflake called TPCH_SF10. This dataset related to a supply chain business. Check here to see the full documentation about the dataset: [Snowflake sample data documentation](https://docs.snowflake.com/en/user-guide/sample-data-tpch) 
+I used a sample dataset from Snowflake called TPCH_SF1. This dataset related to a supply chain business. For more details about the dataset, check this documentation: [Snowflake sample data documentation](https://docs.snowflake.com/en/user-guide/sample-data-tpch) 
 
 ---
 ---
@@ -98,7 +189,7 @@ Before starting, take a look at the requirements and preparations below:
     - Docker
     - Snowflake
     - DBT
-    - Airflow (Astronomer)
+    - Airflow with Astronomer
     - Looker Studio
       
 - Programming Language:
@@ -115,7 +206,7 @@ Before starting, take a look at the requirements and preparations below:
 
 # Preparations
 
-- ## Setup project environment
+- ## Set Up the Project Environment
 
   Create and activate python environment to isolate project dependencies.
   
@@ -124,233 +215,232 @@ Before starting, take a look at the requirements and preparations below:
   source your_project_name/bin/activate    # On Windows: your_project_name\Scripts\activate
   ```
 
-- ## Setup Snowflake environment
+- ## Set Up the Snowflake Environment
 
-Make sure you already create the snowflake account
+  - ### Login and Access the SQL Worksheet
 
-- ### Create the virtual warehouse
+    - **Create a Snowflake Account**
 
-- Go to create > choose sql worksheet
-- In sql worksheet write this query to create the warehouse, database, role and schema:
+      If you don’t have a Snowflake account yet, sign up [here](https://www.snowflake.com/en/data-cloud/platform/).
 
-```
--- Set the root role to execute the query
-use role accountadmin;
+    - **Access the SQL Worksheet**
 
--- Create the warehouse 
-create warehouse if not exists dbt_warehouse with warehouse_size='x-small';
-```
+      Once logged in, navigate to the **SQL Worksheet** in your Snowflake account.
 
-- ### Create the source and target database
+    - **Run SQL Commands**
 
-```
--- Create the database
-create database if not exists [YOUR SOURCE DATABASE NAME];
-create database if not exists [YOUR TARGET DATABASE NAME];
-```
-- ### Create the role
+      In the SQL Worksheet, write queries to set up the data warehouse.
 
-```
--- Create the role
-create role if not exists [YOUR ROLE NAME];
-```
+  - ### Create Virtual Warehouse
+      
+    ```
+    -- Switch to accountadmin role to execute the query
+    USE ROLE accountadmin;
+    ```
+  
+    ```
+    -- Create the warehouse
+    CREATE WAREHOUSE IF NOT EXISTS [YOUR WAREHOUSE NAME] WITH WAREHOUSE_SIZE=[CHOOSE YOUR SIZE];
+    ```
 
-- ### Grant the permission
--- Grant the created warehouse to the created role
-grant usage on warehouse [YOUR WAREHOUSE NAME] to role [YOUR SNOWFLAKE ROLE];
+  - ### Create the Source and Target Database
 
--- Grant the created role to the account user
-grant role dbt_role to user [YOUR ACCOUNT USER NAME];
+    ```
+    -- Create your database
+    CREATE DATABASE IF NOT EXISTS [YOUR SOURCE DATABASE NAME]; -- Optional
+    CREATE DATABASE IF NOT EXISTS [YOUR TARGET DATABASE NAME];
+    ```
+    Since the Snowflake sample database doesn’t allow inserting or updating records due to default permissions, **I created a source database because I’ll need to test the pipeline later with direct updates and inserts**.
+    
+    **If your data source already supports updates and inserts, you don’t need to create a source database**.
+    
+  - ### Create the Role
+  
+    ```
+    -- Create the role to manage permissions for users 
+    CREATE ROLE IF NOT EXISTS [YOUR ROLE NAME];
+    ```
+  
+  - ### Grant Permissions
+    
+    ```
+    -- Grant the created role permission to use the warehouse
+    GRANT USAGE ON WAREHOUSE [YOUR WAREHOUSE NAME] TO ROLE [YOUR SNOWFLAKE ROLE];
+    ```
 
+    ```
+    -- Grant the created role to a specific user, allowing them to perform the actions permitted by that role
+    GRANT ROLE [YOUR ROLE NAME] TO USER [YOUR ACCOUNT USER NAME];
+    ```
+    ```
+    -- Grant the created role permission to use the source and target databases
+    GRANT ALL ON DATABASE [YOUR SOURCE DATABASE NAME] TO ROLE [YOUR SNOWFLAKE ROLE];
+    GRANT ALL ON DATABASE [YOUR TARGET DATABASE NAME] TO ROLE [YOUR SNOWFLAKE ROLE];
+    ```
 
--- Grant the source database with created role
-grant all on database [YOUR SOURCE DATABASE NAME] to role [YOUR SNOWFLAKE ROLE];
+  - ### Create the Schema
+    
+    ```
+    -- Switch into the created role
+    USE ROLE [YOUR SNOWFLAKE ROLE];
+    ```
+    ```
+     -- Switch into the source database
+    USE DATABASE [YOUR SOURCE DATABASE NAME];
+    
+    -- Create the schema in source database
+    CREATE SCHEMA IF NOT EXISTS [YOUR SOURCE DATABASE NAME].[YOUR SCHEMA NAME];
+    ```
+    ```
+    -- Switch into the target database
+    USE DATABASE [YOUR TARGET DATABASE NAME];
 
--- Grant the target database with created role
-grant all on database [YOUR TARGET DATABASE NAME] to role [YOUR SNOWFLAKE ROLE];
+    -- Create the schema in target database
+    CREATE SCHEMA IF NOT EXISTS [YOUR TARGET DATABASE NAME].staging;
+    CREATE SCHEMA IF NOT EXISTS [YOUR TARGET DATABASE NAME].final;
+    CREATE SCHEMA IF NOT EXISTS [YOUR TARGET DATABASE NAME].snapshots;
+    ```
 
-- ### Create the schema
+  - ### Set Up the Data Source
+  
+    Run this query to clone the Snowflake sample dataset into the source database.
+    ```
+    -- Switch into source database
+    USE DATABASE [YOUR SOURCE DATABASE NAME];
+    
+    -- Create the table and clone the dataset into the specified schema
+    CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].customer AS
+    SELECT * FROM snowflake_sample_data.tpch_sf1.customer;
+    
+    CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].supplier AS
+    SELECT * FROM snowflake_sample_data.tpch_sf1.supplier;
+    
+    CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].orders AS
+    SELECT * FROM snowflake_sample_data.tpch_sf1.orders;
+    
+    CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].lineitem AS
+    SELECT * FROM snowflake_sample_data.tpch_sf1.lineitem;
+    
+    CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].part AS
+    SELECT * FROM snowflake_sample_data.tpch_sf1.part;
+    
+    CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].partsupp AS
+    SELECT * FROM snowflake_sample_data.tpch_sf1.partsupp;
+    
+    CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].nation AS
+    SELECT * FROM snowflake_sample_data.tpch_sf1.nation;
+    
+    CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].region AS
+    SELECT * FROM snowflake_sample_data.tpch_sf1.region;
+    ```
 
-```
--- Switch into the created role
-use role [YOUR SNOWFLAKE ROLE];
-
--- Switch into the source database
-use database [YOUR SOURCE DATABASE NAME];
-
--- Create the schema in source database
-create schema if not exists [YOUR SOURCE DATABASE NAME].[YOUR SCHEMA NAME];
-
--- Switch into the target database
-use database [YOUR TARGET DATABASE NAME];
-
--- Create the schema in target database
-create schema if not exists [YOUR SOURCE DATABASE NAME].staging;
-create schema if not exists [YOUR SOURCE DATABASE NAME].final;
-create schema if not exists [YOUR SOURCE DATABASE NAME].snapshots;
-```
-
-- ### Setup source database
-
-since the snowflake sample database it can be insert/updating a new record because the permission setting is like that default I created a database to clone the snowflake sample dataset, the reason is because later I wanna do some testing by insert and updating a new record to a data source. so it just for a project
-
-run this query to clone the snowflake sample dataset into the source database
-```
--- Switch into source database
-USE DATABASE [YOUR SOURCE DATABASE NAME];
-
--- Clone each snowflake sample dataset table into the specified schema in source database
-CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].customer AS
-SELECT * FROM snowflake_sample_data.tpch_sf1.customer;
-
-CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].supplier AS
-SELECT * FROM snowflake_sample_data.tpch_sf1.supplier;
-
-CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].orders AS
-SELECT * FROM snowflake_sample_data.tpch_sf1.orders;
-
-CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].lineitem AS
-SELECT * FROM snowflake_sample_data.tpch_sf1.lineitem;
-
-CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].part AS
-SELECT * FROM snowflake_sample_data.tpch_sf1.part;
-
-CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].partsupp AS
-SELECT * FROM snowflake_sample_data.tpch_sf1.partsupp;
-
-CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].nation AS
-SELECT * FROM snowflake_sample_data.tpch_sf1.nation;
-
-CREATE OR REPLACE TABLE [YOUR SCHEMA NAME].region AS
-SELECT * FROM snowflake_sample_data.tpch_sf1.region;
-
-```
-
-Check [HERE](https://docs.snowflake.com/en/sql-reference/sql/create-warehouse) for the full documentation about how to setting up the snowflake environment.
+For more details about how to setting up the snowflake environment, check the documentation: [Snowflake docs](https://docs.snowflake.com/en/sql-reference/sql/create-warehouse)
 
 ---
+---
 
-- ## Initialize Airflow environment with Astronomer
+- ## Initialize Airflow Project with Astronomer
 
   - ### Install Astro CLI
 
-  This thing used to start running Airflow locally or to manage Astro from your terminal.
+    The Astro CLI is used to run Airflow locally or to manage Astronomer from your terminal.
+
+    Run the following command to install the latest version of the Astro CLI directly to your ```PATH```:
+    ```  
+    curl -sSL install.astronomer.io | sudo bash -s
+    ```
+    For more details, Check the documentation: [Install Astro CLI](https://www.astronomer.io/docs/astro/cli/install-cli/?tab=linux#install-the-astro-cli)
+
+  - ### Initializing the Airflow Project 
+
+    Create a new directory to initialize the Airflow project
+
+    ```
+    mkdir [AIRFLOW_PROJECT_NAME]
+    ```
+
+    Navigate to the directory and initialize the Airflow project with Astro
+ 
+    ```
+    cd [AIRFLOW_PROJECT_NAME]
+    ```
+    ```
+    astro dev init
+    ```   
+
+    After initializing the project, a new directory structure with configuration files will be created in your Airflow project directory.
+
+  - ### Run the Airflow Project
+
+    - **Set up the packages**
+
+      In the [requirements.txt]() file, define the necessary packages for your Airflow project. 
+    
+    - **Set up the Dockerfile**
+
+      Configure the [Dockerfile]() using the Astro image to build and run your Airflow project. 
+    
+    - **Run the Airflow project**
+
+      Make sure Docker is running, then use the command to build and start your Airflow project locally:
   
-  ```
-  Run the following command to install the latest version of the Astro CLI directly to PATH:
-  
-  curl -sSL install.astronomer.io | sudo bash -s
+      ```
+      astro dev start
+      ```
 
-  ```
-  Check here for the full documentation: [Install Astro CLI](https://www.astronomer.io/docs/astro/cli/install-cli/?tab=linux#install-the-astro-cli)
+    - **Verify and access the Airflow UI**
 
-  - ### Initialize Airflow project 
+      After running your Airflow project, the **Webserver** will be accessible at port ```8080```, and **Postgres** at port ```5432```. If these ports are already in use, either stop the existing Docker containers or change the ports in your configuration.
+      
+      To access the Airflow UI, open your browser and go to: ```http://localhost:8080/```. Use the following credentials to log in:
+      
+      - Username: ```admin```
+      - Password: ```admin```
 
-  Create new directory to Initialize the Airflow project
-
-  ```
-  mkdir [AIRFLOW_PROJECT_NAME]
-  ```
-
-  Initialize the Airflow project with Astro
-
- ```
- astro dev init
- ```   
-
-After initialize the project there are new directory and other configuration in your directory
-
-Project Contents
-================
-
-Your Astro project contains the files and folders, like:
-
-- dags: This folder contains the Python files for your Airflow DAGs. By default, this directory includes one example DAG
-- Dockerfile: This file contains a versioned Astro Runtime Docker image that provides a differentiated Airflow experience. If you want to execute other commands or overrides at runtime, specify them here.
-
-
-Deploy Your Project Locally
-===========================
-
-1. Start Airflow on your local machine by running 'astro dev start'.
-
-This command will spin up 4 Docker containers on your machine, each for a different Airflow component:
-
-- Postgres: Airflow's Metadata Database
-- Webserver: The Airflow component responsible for rendering the Airflow UI
-- Scheduler: The Airflow component responsible for monitoring and triggering tasks
-- Triggerer: The Airflow component responsible for triggering deferred tasks
-
-2. Verify that all 4 Docker containers were created by running 'docker ps'.
-
-Note: Running 'astro dev start' will start your project with the Airflow Webserver exposed at port 8080 and Postgres exposed at port 5432. If you already have either of those ports allocated, you can either [stop your existing Docker containers or change the port](https://www.astronomer.io/docs/astro/cli/troubleshoot-locally#ports-are-not-available-for-my-local-airflow-webserver).
-
-3. Access the Airflow UI for your local Airflow project. To do so, go to http://localhost:8080/ and log in with 'admin' for both your Username and Password.
-
-You should also be able to access your Postgres Database at 'localhost:5432/postgres'.
-
-Deploy Your Project to Astronomer
-=================================
-
-If you have an Astronomer account, pushing code to a Deployment on Astronomer is simple. For deploying instructions, refer to Astronomer documentation: [](https://www.astronomer.io/docs/astro/deploy-code/)
-
-- ### Set up the packages
-in the _requirements.txt_ set up this [packages]()
-
-- ### Set up the Dockerfile
-Set up the [Dockerfile]() with Astro image to build and Airflow project 
-
-- ### Run the Airflow project
-Make sure your Docker is running then run this command build an Airflow project with Astro and run it locally
-
-```
-astro dev start
-```
-
-> [!NOTE] Use "astro dev stop" to stop the container while developing the script
-
-```
-
-```
+For more details about the project contents and how to run Airflow locally with Astronomer, check the documentation: [Airflow with Astronomer](https://www.astronomer.io/docs/astro/cli/develop-project)
 
 - ## Create _.env_ file
 
-  Create .env file to store all credential information.
+  Create .env file in your Airflow project directory to store all credential information.
   
   ```
   touch .env
-  ``` 
+  ```
+
+---
+---
 
 > [!NOTE]
-> Ensure that the required tools and packages are installed and the preparations are set up before starting the implementation!
+> **Ensure that the required tools and packages are installed and the preparations are set up before starting the implementation!**
 
----
----
+# Developing the Load and Transform Scripts for ELT
 
-Alright, let's get started!
+Although this project is ELT-based, I focused only on the Load and Transform steps. There’s no Extraction step because I used a sample dataset from Snowflake.
 
-# Developing The ELT Scripts
-
-In this project I just did a Load and Transform actually there is no Extraction task because I used the sample dataset in Snowflake, so I just created the function to Load the sample data source to my database in Snowflake then for the transformation I used DBT to managing that and processit using Cosmos packages to run it effectively.
-
-- ## Create LOAD queries
+- ## Create LOAD Queries
   
-  - [Load queries]()
-    - This query used to:
-      - Truncate all data in staging schema before load a data
-      - Create the table in the staging schema
-      - then load the data from another database to the staging schema in selected database in Snowflake 
+  For the Load step, I first created a query that will be used to define the function for the load task in the DAG configuration. Check it out [here]()
+
+  This query is used to:
+
+  - Truncate all data in the staging schema before loading new data.
+
+  - Create tables in the staging schema.
+
+  - Load the sample data (which I had previously cloned into the source database) to the staging schema in target database.
 
 ---
 
-- ## Managing data transformations with DBT and Astronomer Cosmos
+- ## Managing Data Transformations with DBT
+
+  For the Transform step, I developed the transformation task using DBT. I created and tested several models before defining them in the DAG. Below are the steps:
   
-    - ### Setup DBT
+    - ### Initializing the DBT Project
         
-        - Install DBT 
+        - **Install DBT**
 
           ```
-          pip install dbt-[YOUR_SELECTED_DATABASE_NAME]
+          pip install dbt-[YOUR SELECTED DATABASE NAME]
           ``` 
       
           In this project I'm using Snowflake
@@ -359,22 +449,20 @@ In this project I just did a Load and Transform actually there is no Extraction 
           pip install dbt-snowflake
           ```
           
-        - Initiate DBT project
-     
-          ```
-          Change directory into dags then create a new directory to initialize the DBT project
-            
-          cd dags && mkdir dbt && cd dbt 
-          ```
-    
-          ```
-          Initialize DBT in selected directory
+        - **Initialize the DBT project**
 
+          Change the directory to ```dags/``` then create a new directory to initialize the DBT project
+          ```
+          cd dags && mkdir [YOUR DBT PROJECT DIRECTORY] && cd [YOUR DBT PROJECT DIRECTORY] 
+          ```
+          
+          Then run the following command to initialize the DBT project
+          ```
           dbt init
           ``` 
-          ```
+
           Fill the configuration to initialize the DBT project
-    
+          ```  
           account:              [SNOWFLAKE ACCOUNT] 
           database:             [SNOWFLAKE DATABASE NAME]
           password:             [SNOWFLAKE ACCOUNT PASSWORD]
@@ -385,264 +473,342 @@ In this project I just did a Load and Transform actually there is no Extraction 
           warehouse:            [SNOWFLAKE WAREHOUSE NAME]
           threads (1 or more):  [SET TO THE LOWEST VALUE IF YOUR PC SLOW] 
           ```
-> [!IMPORTANT] For the "account" you have to fill with your snowflake account identifier with the specified format
-> In this project I used this format:  [organization_name]-[account_name] 
-> To see where is the organization_name and account_name, check this documentation: [Snowflake account identifier](https://docs.snowflake.com/en/user-guide/admin-account-identifier)
+          For the ```account``` field, fill in your Snowflake account identifier following this format:
 
-After initiating the project, a new directory will be created in the directory you initialize, like this: [dbt directory]()
+          - ```[organization_name]-[account_name]```
+           
+          To find the correct ```organization_name``` and ```account_name```, check this documentation: [Snowflake account identifier](https://docs.snowflake.com/en/user-guide/admin-account-identifier)
+          
+          After initializing the project, a new directory will be created in the directory where you initialized it, like this: [link]()
 
-      - Set the materialization strategy and timezone
+  - ### Set Up DBT Configuration 
 
-        Update your dbt_project.yml file inside the DBT project directory to look like this: [dbt_project.yml]()
+      - **Set the materialization strategy and timezone**
+
+        Update the ```dbt_project.yml``` file inside the DBT project directory to look like this: [dbt_project.yml]()
   
-      - Set up the required packages
+      - **Set up the required packages**
 
-        Create a packages.yml file inside your DBT project directory and define the required packages: [packages.yml]()
+        Create a ```packages.yml``` file inside your DBT project directory and define the required packages: [packages.yml]()
 
-    - ### Build staging layer model
+  - ### Build Staging Layer Model
+      
+      - **Create a new directory**
+
+        Change directory to ```models/``` within your DBT project directory, and then create a ```staging``` directory. **This directory will be used to store all staging model configuration**
+
+        ```
+        cd models && mkdir staging
+        ```
         
-        - Create new directory
-
-          **This directory will used to store all staging model configuration**
-          ```
-          # Change to the "models" directory in your DBT project directory
-          cd [YOUR_DBT_PROJECT_DIR_NAME]/models/
-          ```
-          ```
-          # Create "staging" directory
-          mkdir staging
-          ```
-
-        - Create Jinja configuration files for the source and all staging models
-            
-            - First, set up the source configuration
-            
-            - Next, create all the staging models
+      - **Create Jinja configuration for source and staging models**
           
-          **Create the source configuration first**, as it is used to reference the selected schema in your data warehouse. Check here for the [complete staging layer models]()
-          
-          
-    - ### Build marts layer model
-      
-        - Create new directory
+        - **Set up the source configuration**
 
-          **This directory will used to store all marts model configuration**
-                 
-          ```
-          # Change to the "models" directory in your DBT project directory
-          cd [YOUR_DBT_PROJECT_DIR_NAME]/models/
-          ```
-          ```
-          # Create the "marts/core" directory
-          mkdir marts; cd marts; mkdir core
-          ```
-
-        - Create Jinja configuration files for the core and all marts models
-            - First, create all the marts models
-            - Next, set up the core models configuration
-     
-          **The core models configuration is used to create constraints and perform data quality testing.** Check here for the [complete marts layer models]()
-
-    - ### Create Snapshot
-
-      In this project, I used DBT snapshots **to track and store data changes over time**. These snapshots are based on the **Slowly Changing Dimension (SCD) strategy** defined during the data warehouse design. Check here for the [complete snapshot configuration]()
-
-    - ### Test the DBT model
-
-      After building the DBT model, you can test it by running the following DBT commands:
-
-      ```
-      dbt debug    # Checks the database connection and the current DBT environment
-      ```
-
-      ```
-      dbt deps     # Install the DBT packages specified
-      ```
-
-      Then, **run these commands sequentially** to compile all the models:
+          Start by setting up the source configuration. This is important because it defines the schema in your data warehouse that you'll reference for loading the data.
         
-      ```
-      dbt run      # Compiles all models and loads them into your target database
-      ```  
+        - **Create the staging models**
+
+          After setting up the source configuration, proceed to create all the staging models. These models will handle the transformation logic for the raw data.
+   
+        **Make sure to create the source configuration first**, as it will be referenced in your staging models. For a complete overview of the staging layer models, check here: [staging layer]()
+          
+  - ### Build Marts Layer Model
+    
+      - **Create a new directory**
+
+        Change directory to ```models/``` within your DBT project directory, and then create a ```marts/core``` directory. **This directory will be used to store all marts model configurations**  
+             
+        ```
+        cd models && mkdir marts && cd marts && mkdir core
+        ```
+
+      - **Create Jinja configuration for marts models**
+
+        - **Create the mart models**
+
+          Start by creating all the mart models. These models will implement the transformation logic for your raw data.
+        
+        - **Set up the core models configuration**
+
+          After creating the mart models, set up the core models configuration. This configuration is used to create constraints and perform some data quality testing.
+
+        For a complete overview of the marts layer models, check here: [marts layer]()
+
+  - ### Create Snapshot Model
+ 
+    In this project, I used DBT snapshots to track and store changes in data over time. These snapshots follow the **Slowly Changing Dimension (SCD) strategy**, as defined in the data warehouse design. This allows the system to capture historical changes and keep the data up-to-date.
+
+    For a complete overview of the snapshot models, check here: [snapshot models]()
+  
+  - ### Create Constraints
+
+    After creating the model, you can define relationships between tables and add some generic tests to ensure data consistency and accuracy by setting up a DBT constraints configuration.
+
+    In this project, I created a DBT constraints configuration in the marts layer. For more details about the configuration, check here: [link]
+  
+  - ### Create Data Tests
+
+    I also wrote singular tests to verify specific functional requirements and validate the data. These tests help ensure the reliability of data transformations and outputs. For more details about the configuration, check here: [link].
+
+  - ### Test the DBT Models
+
+    After building the DBT model, you can test it by running the following DBT commands:
+
+    ```
+    dbt debug    # Checks the database connection and the current DBT environment
+    ```
+
+    ```
+    dbt deps     # Install the DBT packages specified
+    ```
+
+    Then, **run these commands sequentially** to compile all the models:
       
-      ```
-      dbt snapshot # Create the snapshot models and load it into your target database
-      ```
-      
-      ```
-      dbt test     # Runs singular/generic tests and creates the constraints in the models
-      ```
+    ```
+    dbt run      # Compiles all models and loads them into the target database
+    ```  
+    
+    ```
+    dbt snapshot # Runs the snapshot models and stores them in the target database
+    ```
+    
+    ```
+    dbt test     # Runs both singular and generic tests, applying constraints to the models
+    ```
 
 ---
 ---
 
-# Create DAG
+# Create Directed Acyclic Graph (DAG)
 
-This DAG used to orchestrate and automate the Load and Transformation task with DBT in Airflow using Cosmos package.
+The DAG in this project is used to manage and automate the Load and Transformation tasks using Python and DBT, with Airflow to control the workflow, and the Cosmos package to help run the DBT tasks smoothly.
 
-Here's the main component of DAG in this proejct
+- ## Key Components of the DAG
 
-- ## LOAD data function
+  - ### LOAD Data Function
 
-This function used to connecting the database in Snowflake and execute the LOAD query to dump the data into the staging schema in target database.
+    This function is used to connect to the specified Snowflake database and execute the previously created LOAD query to dump the data into the staging schema of the target database.
 
-- ## DAG main config
+  - ### DAG Main Configuration
 
-When setting up this DAG, remember that the container actually mounts the local directory, so the structure inside the container matches the structure on your local machine. However, the key difference is that the base path in the container starts with /usr/local/airflow/.
+    This configuration is used to set up how the DAG runs and manages the task workflow. Key components in the configuration include:
+ 
+    - **DBT project paths**
 
-For example, if your DBT project is located at ./dags/dbt/elt_with_dbt_snowflake in your local directory, the path inside the container would be /usr/local/airflow/dags/dbt/elt_with_dbt_snowflake.
+      These paths are necessary for configuring the DBT setup in the DAG.
 
-Here’s how the paths should look inside your DAG:
-
-```
-# Define DBT project paths
-DBT_PROJECT_PATH = /usr/local/airflow/ + Path to your DBT project in the container
-DBT_PROFILES_PATH = /usr/local/airflow/ + Path to the profiles.yml file in the container
-
-```
-```
-Set the dbt project and profile config
-
-These configurations are essential for Astronomer Cosmos to know how to interact with your DBT setup.
-
-Project Config: Points Cosmos to your DBT project files.
-Profile Config: Specifies the DBT profile (with connection settings) and target environment, enabling Cosmos to run DBT commands properly.
-
-# Configure the DBT project path
-dbt_project_config = ProjectConfig(
-    dbt_project_path=DBT_PROJECT_PATH,        # Path to the DBT project (inside the container)
-)
-
-# Configure the DBT profile settings
-profile_config = ProfileConfig(
-    profile_name="[YOUR PROFILE NAME]",       # Replace with the name of your DBT profile
-    target_name="[YOUR TARGET ENV NAME]",     # Replace with your target environment name (e.g., dev or prod)
-    profiles_yml_filepath=DBT_PROFILES_PATH,  # Path to profiles.yml (inside the container)
-)
-
-```
-
-```
-# Set up the DAG configuration
-with DAG(
-    dag_id="example_dag",                       # Unique identifier for this DAG
-    schedule_interval="daily",                  # Scheduler interval, e.g., "daily", "monthly", etc.
-    start_date=datetime(year, month, day),      # Specify the start date for scheduling tasks
-    catchup=False,                              # Skip any missed runs from the past
-    max_active_tasks=1,                         # Limit to one active task at a time during pipeline execution
-) as dag:
-
+      ```
+      DBT_PROJECT_PATH = AIRFLOW CONTAINER WORKING DIRECTORY + Path to your DBT project in the container
+      DBT_PROFILES_PATH = AIRFLOW CONTAINER WORKING DIRECTORY + Path to the profiles.yml file in the container
+      DBT_PROFILES_PATH = AIRFLOW CONTAINER WORKING DIRECTORY + Path to the snapshot models in the container
+      ```
     
-    # Define the tasks
+    - **DBT project and profile configuration**
 
-    # Placeholder task to mark the start of the DAG
-    start = EmptyOperator(task_id="start_dag")  
-    
-    # Load task to load the data source into the target database
-    load_task = PythonOperator(                     # Python operator to called the load_data function
-        task_id="load_data_source",                 # Task name 
-        python_callable=load_data,                  # Define the Python function for this task
-    )
-    
-    # Transform task to run the data transformation with DBT Cosmos
-    transform_task = DbtTaskGroup(
-        group_id="transform_data_with_dbt",         # Define the group ID
-        project_config=dbt_project_config,          # Pass the project config
-        profile_config=profile_config,              # Pass the profile config
-        render_config=RenderConfig(                 # Pass the render config                     
-            test_behavior=TestBehavior.AFTER_ALL,   # Set the test behavior to run tests after all models are
-        )
-    )
+      These configurations are essential for Astronomer Cosmos to know how to interact with your DBT setup.
 
-    ...... 
-    You can add another DBT task group for further transformations (if needed)
-    ......
+      ```
+      dbt_project_config = ProjectConfig(
+          dbt_project_path=DBT_PROJECT_PATH,
+          snapshots_relative_path=DBT_SNAPSHOT_PATH,
+      )
+      ```
+      ```   
+      profile_config = ProfileConfig(
+          profile_name="[YOUR PROFILE NAME]",       # Replace with the name of your DBT profile
+          target_name="[YOUR TARGET ENV NAME]",     # Replace with your target environment name (e.g., dev or prod)
+          profiles_yml_filepath=DBT_PROFILES_PATH,  
+      )
+      ```
+ 
+    - **DAG setup**
+ 
+      Standard configuration for scheduling and task management settings.
+      
+      ```
+      with DAG(
+          dag_id="example_dag",                       # Unique identifier for this DAG
+          schedule_interval="daily",                  # Scheduler interval, e.g., "daily", "monthly", etc.
+          start_date=datetime(year, month, day),      # Specify the start date for scheduling tasks
+          catchup=False,                              # Skip any missed runs from the past
+          max_active_tasks=1,                         # Limit to one active task at a time during pipeline execution
+      ) as dag:
+      ```
+ 
+    - **Defining the tasks**
+ 
+      Each task is responsible for executing a specific step in the pipeline.
+ 
+      ``` 
+      # An EmptyOperator to mark the beginning of the DAG execution
+      start = EmptyOperator(task_id="start_dag")
+      ``` 
+      ```
+      # Load task to load the data source into the target database
+      load_task = PythonOperator(                     # Python operator to called the load_data function
+          task_id="load_data_source",                 # Task name 
+          python_callable=load_data,                  # Define the Python function for this task
+      )
+      ```
+      ```
+      # Transform task to run the data transformation with DBT Cosmos
+      transform_task = DbtTaskGroup(
+          group_id="transform_data_with_dbt",         # Define the group ID
+          project_config=dbt_project_config,          # Pass the project config
+          profile_config=profile_config,              # Pass the profile config
+          render_config=RenderConfig(                 # Pass the render config                     
+              test_behavior=TestBehavior.AFTER_ALL,   # Set the test behavior to run tests after all models are
+          )
+      )
+      
+      ...... 
+      You can add another DBT task group for further transformations (if needed)
+      ......
+  
+      ```
+      ```
+      # An EmptyOperator to mark the end of the DAG execution
+      end = EmptyOperator(task_id="end_dag")       
+      ```
+      ```
+      # Set the task dependencies and chain tasks in execution order
+      start >> load_task >> transform_staging >> transform_marts >> end     
+      ```
 
-    # Placeholder task to mark the end of the DAG
-    end = EmptyOperator(task_id="end_dag")       
+> [!IMPORTANT]
+> When setting up the DAG, keep in mind that although the Airflow container mounts the local directory, the DAG must refer to paths inside the container, not on your local machine.
+>
+> **Make sure to check the base path inside the container when defining paths in your DAG**. 
+>
+> To check the exact path in your container, you can log into the container and use the ``pwd`` command in the terminal to confirm the working directory. This ensures you are using the correct path when referencing files inside the container.
+>
+> For example, if your DBT project is located at ```./dags/dbt``` on your local machine, the corresponding path inside the container will be ```AIRFLOW CONTAINER WORKING DIRECTORY/dags/dbt```
 
-    # Set the task dependencies and chain tasks in execution order
-    start >> load_task >> transform_staging >> transform_marts >> end     
-```
+---
+---
 
 # Deploy to Airflow
 
-- ## Setup Snowflake connection
+After developing the tasks and creating the DAG, the next step is to deploy them to Airflow to run the pipeline.
 
-- Login to Airflow webserver
-- admin > connections > add connections
-- in add conection, fill with this:
+- ## Setup Snowflake-Airflow Connection
 
-```
-Connection id = YOUR CONNECTION NAME (MUST BE SAME WITH IN YOUR DAG)
-Connection Type = Snowflake
-Login = YOUR ACCOUNT USER NAME
-Password = YOUR ACCOUNT PASSWORD
-Account = YOUR ACCOUNT IDENTIFIER
-Warehouse = YOUR TARGET WAREHOUSE NAME
-Database = YOUR TARGET DATABASE NAME
-Role = YOUR SELECTED ROLE 
-```
+  Establish a connection between Airflow and Snowflake before running the pipeline.
+  
+  - **Login to Airflow UI**
+    
+    Navigate to the Airflow UI, which by default hosted at ```localhost:8080``` or another custom port you may have configured.
+    
+  - **Create a new connection**
 
-For the secureness you can use the Private key to establish the connection, since I just develop locally
+    - In the Airflow UI, go to the Admin tab.
 
-- ## Run the pipeline
-Trigger the DAG 
+    - Select Connections from the dropdown.
 
-[image of the pipeline result]
+    - Click the + button to Add a New Connection.
+  
+  - **Fill in the connection details**
+
+    In the form, fill in the required information as follows:
+
+    ```
+    - Connection ID    : This must match the connection name used in your DAG code.
+    - Connection Type  : Select Snowflake.
+    - Login            : Enter your Snowflake Account Username.
+    - Password         : Enter your Snowflake Account Password.
+    - Account          : Provide your Snowflake Account Identifier.
+    - Warehouse        : The target warehouse you want to use in Snowflake.
+    - Database         : The target database in Snowflake.
+    - Role             : Specify the role that has the necessary permissions to run your queries.
+    ```
+
+> [!CAUTION]
+> **For enhanced security, consider using a private key for the connection instead of plain text credentials if you're not working in a local environment!.**
+
+- ## Run the Pipeline
+
+  After setting up the connection, you can trigger your DAG to run the pipeline.
+
+  - **Navigate to your DAG**
+
+    Find the DAG you want to run from the list. Its name refer to the ```dag_id``` defined in the script.
+
+  - **Trigger the DAG**
+
+    Click on the play button (▶️) next to your DAG to trigger it. This will start the execution of the tasks as defined in your pipeline.
+
+---
+---
 
 # Deploy to Looker Studio
 
-After the pipeline succesfully, next I created the dashboard based on the created data warehouse for reporting and analytics with looker studio ....
+Once the pipeline has successfully completed, you can create a dashboard for reporting and analytics in Looker Studio based on the data in your data warehouse.
 
 - ## Connect Looker Studio with Snowflake
 
-- Sign in to Google Looker Studio.
-- Click +, and then select Data Source.
-- Under the Partner Connectors section, select the Snowflake connector (the connector with the Snowflake logo).
-- If required, authorize Google Looker Studio to use this community connector.
-- Enter the following Snowflake user credentials to connect to Snowflake:
-- Username
-- Password or private key
-- Click Submit.
-- Provide the following parameters required to connect to your Snowflake account:
-- Account URL
-- Role
-- Warehouse
-- Database
-- Schema
-- SQL query
+  - **Sign in to Google Looker Studio**
 
-> [!Note] The SQL query cannot end with a semicolon.
+    Navigate to [Google Looker Studio](https://lookerstudio.google.com/overview) and sign in with your Google account.
+    
+  - **Add data source**
 
-- Click Connect.
-A page containing data source fields is displayed.
+    - Click the + button to add a new data source.
+    - Under the Partner Connectors section, select the Snowflake connector.
 
-- To visualize your data, click Create Report or Explore.
+  - **Authorize access**
+    
+    If prompted, grant Google Looker Studio permission to use the Snowflake community connector
 
-> [!Note] If you have trouble connecting to your Snowflake account, use the following procedure to revoke access, and then try to connect again.
+  - **Enter Snowflake credentials**
 
-Check this documentation: [Snowflake to Looker Studio](https://other-docs.snowflake.com/en/connectors/google-looker-studio-connector)
+    In the credentials section, provide the necessary information to connect to your Snowflake account
 
+  - **Provide Snowflake connection parameters**
+    
+    Enter the following details for the connection:
+ 
+    ```
+    - Account URL  : Your Snowflake account URL (e.g., xy12345.snowflakecomputing.com)
+    - Role         : The role used for querying the data in Snowflake.
+    - Warehouse    : The Snowflake warehouse to use for queries.
+    - Database     : The target database in Snowflake.
+    - Schema       : The schema where your data resides.
+    - SQL Query    : Custom SQL query to retrieve the specified data.
+    ```
+  - **Connect to Snowflake**
+    
+    Click Connect to establish the connection.
 
-Then you can create your dashboard based on the data in the Snowflake
+  - **Create the report**
+    
+    To start working with your data, click Create Report or Explore.
 
+For more details, Check this documentation: [Snowflake to Looker Studio](https://other-docs.snowflake.com/en/connectors/google-looker-studio-connector)
 
-Check Here's to see the dashboard I created based on the Data Warehouse design [Dashboard](https://lookerstudio.google.com/reporting/8cee9a2c-3a16-44fd-98a8-9c530b20c8fa)
+- ## Build the Dashboard
+  
+Once your data is connected to Looker Studio, you can create visualizations and build your reports and dashboards using the data stored in your Snowflake data warehouse. Customize your reports based on your business needs and analytics requirements.
 
+Check out the project dashboard here: [Dashboard](https://lookerstudio.google.com/reporting/8cee9a2c-3a16-44fd-98a8-9c530b20c8fa)
+
+---
+---
 
 # Testing
 
-I conducted several test queries to ensure the pipeline can run succesfully everyday.  Below are the test and their results:
+After the pipeline runs successfully, I performed several test queries to ensure it executes correctly every day. Below are the tests and their results:
 
 - ## Integration and functional test
-In this test I will add a new record and update some record in data source then run the pipeline to see whether the pipeline will run succesfully and fucntion
+  
+In this test, I add a new record and update some existing records in the data source. Then, I re-run the pipeline to check if it executes successfully and functions as expected
 
 ```
 -- Insert new record to customer tabel in data source
 INSERT INTO data_source.customer
 VALUES(150001,'TESTING NAME', 'TESTING ADDRESS', 1, '12-345-678-9101', 500000, 'BUILDING', 'TESTING COMMENT');
-
+```
+```
 -- Update a record in customer table in data source
 UPDATE data_source.customer
 SET c_name = 'SCD-TEST-#000150000'
