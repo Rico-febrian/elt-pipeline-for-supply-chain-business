@@ -1,4 +1,4 @@
-[!Title Image]()
+![Title](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/blob/main/assets/title.png)
 
 # Overview
 
@@ -98,6 +98,8 @@ The current data quality is good, with no missing values. The values are consist
 # Pipeline Workflow Overview
 
 Before diving into the main discussion, take a look at the image below. This illustrates the workflow I followed to build this project.
+
+![Pipeline Worfklow](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/blob/main/assets/pipeline_workflow_design.png)
 
 Although this project is ELT-based, I only focused on the Load and Transform steps. **I skipped the Extract step because I used a sample dataset from Snowflake**. So, this project is mainly about loading and transforming data.
 
@@ -374,11 +376,11 @@ For more details about how to setting up the snowflake environment, check the do
 
     - **Set up the packages**
 
-      In the [requirements.txt]() file, define the necessary packages for your Airflow project. 
+      In the [requirements.txt](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/blob/main/requirements.txt) file, define the necessary packages for your Airflow project. 
     
     - **Set up the Dockerfile**
 
-      Configure the [Dockerfile]() using the Astro image to build and run your Airflow project. 
+      Configure the [Dockerfile](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/blob/main/Dockerfile) using the Astro image to build and run your Airflow project. 
     
     - **Run the Airflow project**
 
@@ -396,8 +398,8 @@ For more details about how to setting up the snowflake environment, check the do
       
       - Username: ```admin```
       - Password: ```admin```
-
-For more details about the project contents and how to run Airflow locally with Astronomer, check the documentation: [Airflow with Astronomer](https://www.astronomer.io/docs/astro/cli/develop-project)
+      
+      For more details about the project contents and how to run Airflow locally with Astronomer, check the documentation: [Airflow with Astronomer](https://www.astronomer.io/docs/astro/cli/develop-project)
 
 - ## Create _.env_ file
 
@@ -413,13 +415,16 @@ For more details about the project contents and how to run Airflow locally with 
 > [!NOTE]
 > **Ensure that the required tools and packages are installed and the preparations are set up before starting the implementation!**
 
+---
+---
+
 # Developing the Load and Transform Scripts for ELT
 
 Although this project is ELT-based, I focused only on the Load and Transform steps. There’s no Extraction step because I used a sample dataset from Snowflake.
 
 - ## Create LOAD Queries
   
-  For the Load step, I first created a query that will be used to define the function for the load task in the DAG configuration. Check it out [here]()
+  For the Load step, I first created a query that will be used to define the function for the load task in the DAG configuration. Check it out [here](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/tree/main/dags/load_query)
 
   This query is used to:
 
@@ -478,18 +483,16 @@ Although this project is ELT-based, I focused only on the Load and Transform ste
           - ```[organization_name]-[account_name]```
            
           To find the correct ```organization_name``` and ```account_name```, check this documentation: [Snowflake account identifier](https://docs.snowflake.com/en/user-guide/admin-account-identifier)
-          
-          After initializing the project, a new directory will be created in the directory where you initialized it, like this: [link]()
 
   - ### Set Up DBT Configuration 
 
       - **Set the materialization strategy and timezone**
 
-        Update the ```dbt_project.yml``` file inside the DBT project directory to look like this: [dbt_project.yml]()
+        Update the ```dbt_project.yml``` file inside the DBT project directory to look like this: [dbt_project.yml](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/blob/main/dags/dbt/elt_with_dbt_snowflake/dbt_project.yml)
   
       - **Set up the required packages**
 
-        Create a ```packages.yml``` file inside your DBT project directory and define the required packages: [packages.yml]()
+        Create a ```packages.yml``` file inside your DBT project directory and define the required packages: [packages.yml](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/blob/main/dags/dbt/elt_with_dbt_snowflake/packages.yml)
 
   - ### Build Staging Layer Model
       
@@ -511,7 +514,7 @@ Although this project is ELT-based, I focused only on the Load and Transform ste
 
           After setting up the source configuration, proceed to create all the staging models. These models will handle the transformation logic for the raw data.
    
-        **Make sure to create the source configuration first**, as it will be referenced in your staging models. For a complete overview of the staging layer models, check here: [staging layer]()
+        **Make sure to create the source configuration first**, as it will be referenced in your staging models. For a complete overview of the staging layer models, check here: [staging layer](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/tree/main/dags/dbt/elt_with_dbt_snowflake/models/staging)
           
   - ### Build Marts Layer Model
     
@@ -530,26 +533,20 @@ Although this project is ELT-based, I focused only on the Load and Transform ste
           Start by creating all the mart models. These models will implement the transformation logic for your raw data.
         
         - **Set up the core models configuration**
+       
+          After creating the model, you can define relationships between tables and add some generic tests to ensure data consistency and accuracy by setting up a the core models configuration.
 
-          After creating the mart models, set up the core models configuration. This configuration is used to create constraints and perform some data quality testing.
-
-        For a complete overview of the marts layer models, check here: [marts layer]()
+        For a complete overview of the marts layer models, check here: [marts layer](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/tree/main/dags/dbt/elt_with_dbt_snowflake/models/marts/core)
 
   - ### Create Snapshot Model
  
     In this project, I used DBT snapshots to track and store changes in data over time. These snapshots follow the **Slowly Changing Dimension (SCD) strategy**, as defined in the data warehouse design. This allows the system to capture historical changes and keep the data up-to-date.
 
-    For a complete overview of the snapshot models, check here: [snapshot models]()
+    For a complete overview of the snapshot models, check here: [snapshot models](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/tree/main/dags/dbt/elt_with_dbt_snowflake/snapshots)
   
-  - ### Create Constraints
+  - ### Create Singular Tests
 
-    After creating the model, you can define relationships between tables and add some generic tests to ensure data consistency and accuracy by setting up a DBT constraints configuration.
-
-    In this project, I created a DBT constraints configuration in the marts layer. For more details about the configuration, check here: [link]
-  
-  - ### Create Data Tests
-
-    I also wrote singular tests to verify specific functional requirements and validate the data. These tests help ensure the reliability of data transformations and outputs. For more details about the configuration, check here: [link].
+    I also wrote singular tests to verify specific functional requirements and validate the data. These tests help ensure the reliability of data transformations and outputs. For more details about the configuration, check here: [singular tests](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/tree/main/dags/dbt/elt_with_dbt_snowflake/tests).
 
   - ### Test the DBT Models
 
@@ -582,7 +579,7 @@ Although this project is ELT-based, I focused only on the Load and Transform ste
 
 # Create Directed Acyclic Graph (DAG)
 
-The DAG in this project is used to manage and automate the Load and Transformation tasks using Python and DBT, with Airflow to control the workflow, and the Cosmos package to help run the DBT tasks smoothly.
+The DAG in this project is used to manage and automate the Load and Transformation tasks using Python and DBT, with Airflow to control the workflow, and the Cosmos package to help run the DBT tasks smoothly. For more details about the DAG, check here: [DAG](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/blob/main/dags/elt_pipeline_dag.py)
 
 - ## Key Components of the DAG
 
@@ -675,6 +672,8 @@ The DAG in this project is used to manage and automate the Load and Transformati
       # Set the task dependencies and chain tasks in execution order
       start >> load_task >> transform_staging >> transform_marts >> end     
       ```
+---
+---
 
 > [!IMPORTANT]
 > When setting up the DAG, keep in mind that although the Airflow container mounts the local directory, the DAG must refer to paths inside the container, not on your local machine.
@@ -801,31 +800,70 @@ After the pipeline runs successfully, I performed several test queries to ensure
 
 - ## Integration and functional test
   
-In this test, I add a new record and update some existing records in the data source. Then, I re-run the pipeline to check if it executes successfully and functions as expected
+  In this test, I add a new record and update some existing records in the data source. Then, I re-run the pipeline to check if it executes successfully and functions as expected. Below are the steps and the result:
 
-```
--- Insert new record to customer tabel in data source
-INSERT INTO data_source.customer
-VALUES(150001,'TESTING NAME', 'TESTING ADDRESS', 1, '12-345-678-9101', 500000, 'BUILDING', 'TESTING COMMENT');
-```
-```
--- Update a record in customer table in data source
-UPDATE data_source.customer
-SET c_name = 'SCD-TEST-#000150000'
-WHERE c_custkey = 150000;
-```
-Before update
+  - **Insert new record to customer tabel in data source**
+    ```
+    INSERT INTO data_source.customer
+    VALUES(150001,'TESTING NAME', 'TESTING ADDRESS', 1, '12-345-678-9101', 500000, 'BUILDING', 'TESTING COMMENT');
+    ```
+  
+  - **Update a record in customer table in data source**
+    ```
+    UPDATE data_source.customer
+    SET c_name = 'SCD-TEST-#000150000'
+    WHERE c_custkey = 150000;
+    ```
+    
+  - **Check customer table in the data source after adding and updating the new record**
+    
+    ![Updated 1](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/blob/main/assets/updated_data_source.png)
+  
+  - **Check current data in final and snapshot schema** 
+    
+    - Customer dimension table in final schema BEFORE update
+    
+      ![Before Update 1](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/blob/main/assets/dim_cust_before_update.png)
+  
+    - Customer dimension table in snapshot schema BEFORE update
+    
+      ![Before Update 2](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/blob/main/assets/snapshot_table_before_update.png)
+  
+  ---
+  
+  - **Re-run the pipeline and check again the to see if there's any update** 
+    
+    - Customer dimension table in final schema AFTER update
+    
+      ![Updated 2](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/blob/main/assets/updated_cust_table.png)
+    
+    - Customer dimension table in snapshot schema AFTER update
+    
+      ![Updated 3](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/blob/main/assets/updated_snapshot_table.png)
 
-After update
-
+---
+---
 
 # Final Result
+
+- Pipeline Result
+  
+  ![Result 1](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/blob/main/assets/airflow_pipeline.png)
+
+- Dashboard
+
+  ![Result 2](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/blob/main/assets/dashboard.png)
+
+- DBT Lineage Graph
+
+  ![Result 3](https://github.com/Rico-febrian/elt-pipeline-for-supply-chain-business/blob/main/assets/dbt_lineage_graph.png)
+
+---
+---
 
 # Conclusion
 
 Well, you’ve reached the end of this guide. In summary, I’ve shared my learning journey in data engineering, focusing on designing a dimensional model for a Data Warehouse and implementing the ELT process with Snowflake, DBT, Airflow and Astronomer Cosmos, based on a case study in the supply chain business. 
-
-**For the full article about this project you can check out my article on Medium here:** [full-story]().
 
 Thank you for joining me on this learning experience. I hope you’ve gained valuable insights that will help you in your own data engineering journey. If you have any questions or need additional information, feel free to reach out. I’m open to any feedback or suggestions you may have.
 
@@ -833,7 +871,3 @@ Thank you for joining me on this learning experience. I hope you’ve gained val
 
 - [My LinkedIn](www.linkedin.com/in/ricofebrian)
 - [My Medium](https://medium.com/@ricofebrian731)
-
-# References
-
-
